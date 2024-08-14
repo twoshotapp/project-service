@@ -1,3 +1,6 @@
 [submodule "platform-api"]
 	path = platform-api
 	url = git@github.com:twoshotapp/platform-api.git
+[submodule "schema"]
+	path = schema
+	url = git@github.com:twoshotapp/project-service-api.git
