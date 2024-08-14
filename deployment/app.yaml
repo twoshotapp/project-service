@@ -1,0 +1,116 @@
+# Kubernetes deployment file for the query-processor web service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: query-processor
+spec:
+  replicas: 2  # Only deploy one instance of the web service
+  selector:
+    matchLabels:
+      app: query-processor
+  template:
+    metadata:
+      labels:
+        app: query-processor
+    spec:
+      imagePullSecrets:
+        - name: acr-secret
+      containers:
+        - name: query-processor
+          image: twoshot.azurecr.io/query-processor:b39b50d33085459b78b1ddda284602f09d518197  # Use the latest version of the Docker image
+          ports:
+            - containerPort: 3000  # Expose port 3000 on the container
+
+          # scan websocket endpoint on port 3000 to check if the service is up - ignore 404 errors
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+
+          env:
+            # Email Config
+            - name: CONTACT_EMAIL
+              value: contact@twoshot.app
+            - name: SENDGRID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: query-processor-secret
+                  key: SENDGRID_API_KEY
+
+            # GPT Config
+            - name: DEFAULT_REDIS_TTL
+              value: "60"
+            - name: AZURE_OAI_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: query-processor-secret
+                  key: AZURE_OAI_KEY
+            - name: TOKENIZER
+              value: gpt-4
+            - name: AZURE_OAI_ENDPOINT
+              value: https://twoshot.openai.azure.com
+            - name: AZURE_OAI_CHATGPT_DEPLOYMENT
+              #              value: twoshot-small
+              value: gpt-4o
+            - name: JSON_MODEL
+              #              value: twoshot-small
+              value: gpt-4o
+            - name: CHATGPT_MODEL_TOKENS
+              value: "128000"
+            #            - name: CHATGPT_FALLBACK_MODEL
+            #              value: twoshot
+
+            # DB connection details
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_HOST
+              value: "twoshot.postgres.database.azure.com"
+            - name: DB_SSL
+              value: "true"
+            - name: DB_NAME
+              value: twoshot
+            - name: DB_USER
+              value: "twoshot"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: postgres-password
+            - name: REDIS_HOST
+              value: redis-master.default.svc.cluster.local
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis
+                  key: redis-password
+
+            - name: TWOSHOT_AUTH_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: signing-key-public
+            - name: TWOSHOT_API_BASE_PATH
+              value: http://twoshot.default.svc.cluster.local:8080
+            - name: AIVA_FRONTEND_URL
+              value: https://aiva.bio
+            - name: PORT
+              value: "3000"  # Set the PORT environment variable to 3000
+            - name: AZURE_OAI_DEPLOYMENT
+              value: twoshot
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: query-processor
+spec:
+  type: NodePort  # Use a NodePort service type to expose the web service on the cluster's nodes
+  selector:
+    app: query-processor
+  ports:
+    - protocol: TCP
+      port: 3000  # Expose port 3000 on the service
+      targetPort: 3000  # Target the container's port 3000 for incoming traffic

@@ -1,0 +1,33 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/deploy_to_kubernetes.yaml
+      - 'deployment/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT }}
+
+      - name: Authenticate with Azure
+        uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup kubectl
+        uses: Azure/setup-kubectl@v1
+
+      - name: Set Kubernetes context
+        run: |
+          az aks get-credentials --resource-group twoshot --name twoshot --overwrite-existing
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f deployment/

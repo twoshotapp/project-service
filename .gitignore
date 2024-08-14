@@ -1,0 +1,24 @@
+.env
+
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS generated files
+.DS_Store
+
+
+# Build files
+build/
+dist/
+tmp/
+out/
+
+node_modules
+deployment/*secret.yaml
+
+*.pem
+gen

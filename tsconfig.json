@@ -1,0 +1,15 @@
+{
+  "extends": "@tsconfig/node18/tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ESNext",
+    "esModuleInterop": true,
+    "noEmit": false,
+    "noEmitOnError": false
+  },
+  "exclude": [
+    "node_modules",
+    "gen/**/*"
+  ]
+}

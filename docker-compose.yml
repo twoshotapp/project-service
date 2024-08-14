@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  twoshot-aiva-redis:
+    image: redis:7.0.12
+    ports:
+      - 4002:6379

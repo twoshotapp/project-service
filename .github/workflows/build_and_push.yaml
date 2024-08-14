@@ -1,0 +1,45 @@
+name: Build and Push to Azure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - '.github/workflows/build_and_push.yaml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'Dockerfile'
+      - '.dockerignore'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT }}
+          submodules: recursive
+
+      - name: Build Docker image
+        run: docker build -t twoshot.azurecr.io/query-processor:${{ github.sha }} .
+      - name: Docker ACR login
+        uses: azure/docker-login@v1
+        with:
+          login-server: twoshot.azurecr.io
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Push Docker image
+        run: docker push twoshot.azurecr.io/query-processor:${{ github.sha }}
+      - name: Update deployment/app.yaml with new image tag
+        run: |
+          sed -i "s#twoshot.azurecr.io/query-processor:[a-zA-Z0-9]*#twoshot.azurecr.io/query-processor:${{ github.sha }}#g" deployment/app.yaml
+      - name: Commit updated app.yaml
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "[CI] Update app.yaml with new image tag: ${{ github.sha }}"
+          file_pattern: deployment/app.yaml
