@@ -1,9 +1,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ai
+  name: studio-project-ingress
   annotations:
-    nginx.org/websocket-services: query-processor
+    nginx.org/websocket-services: studio-project-service
     cert-manager.io/cluster-issuer: letsencrypt
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/secure-backends: "true"
@@ -15,8 +15,8 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - api.twoshot.ai
-      secretName: tls-ml
+        - studio.api.twoshot.app
+      secretName: tls-studio
   rules:
     - http:
         paths:
@@ -24,7 +24,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: query-processor
+                name: studio-project-service
                 port:
                   number: 3000
-      host: api.twoshot.ai
+      host: studio.api.twoshot.app

@@ -1,7 +1,5 @@
 import humanizeDuration from 'humanize-duration';
 import moment, {DurationInputArg1, DurationInputArg2} from "moment";
-import {ResponseError} from '../gen/runtime.js';
-import {EMPTY_TOKEN} from "./service/assistant.js";
 
 export async function allFulfilled<T>(promises: Promise<T>[]): Promise<T[]> {
     const mappedEntries = await Promise.allSettled(promises)
@@ -72,27 +70,9 @@ export function round(value: number, decimalPlacements: number) {
     return Math.round(value * mult) / mult
 }
 
-export function cleanupRedundantWhitespace(text?: string | null) {
-    let result: string | undefined;
-
-    if (text)
-        result = text
-            .replaceAll(/\r?\n/g, "\n")
-            .replace(/(\n *){4,}/g, "\n\n\n")
-            .replace(/ {2,}/g, " ")
-            .trim();
-
-    return result ? result : EMPTY_TOKEN;
-}
-
 export function formatDate(now: moment.MomentInput) {
     return moment(now).utcOffset(0).format("YYYY-MM-DD HH:mm:ss Z");
 }
-
-export function formatOptionalDate(time?: moment.MomentInput) {
-    return time ? formatDate(time) : EMPTY_TOKEN;
-}
-
 
 // Define the type for the reducer callback function
 type ReducerCallback<T, U> = (accumulator: T, currentValue: U) => Promise<T>;
@@ -178,14 +158,6 @@ export function getErrorMessageStatic(e: unknown) {
     if (e instanceof Error) return e.message;
     if (e) return e.toString();
     return 'Unknown error';
-}
-
-export async function getErrorMessage(e: unknown) {
-    if (e instanceof ResponseError) {
-        const res = await e.response.text();
-        return `${e.response.status} ${e.response.statusText}: ${res}`
-    }
-    return getErrorMessageStatic(e);
 }
 
 export function getErrorText(e: unknown) {

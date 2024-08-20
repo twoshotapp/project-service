@@ -13,13 +13,14 @@ export type Seconds = Brand<number, "seconds">
 export type Pixels = Brand<number, "pixels">
 export type Percent = Brand<number, "percent">
 
+export type ProjectId = BrandedBrand<UUID, "project-id">;
 export type ClipId = BrandedBrand<UUID, "clip-id">;
 export type TrackId = BrandedBrand<UUID, "track-id">;
 
 export type ClipPosition = Beats;
 
 export type StudioProject = {
-    id: UUID,
+    id: ProjectId,
     name: string,
     // public: boolean,
     created: Date,

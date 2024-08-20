@@ -1,23 +1,23 @@
-# Kubernetes deployment file for the query-processor web service
+# Kubernetes deployment file for the Studio Project web service
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: query-processor
+  name: studio-project-service
 spec:
   replicas: 2  # Only deploy one instance of the web service
   selector:
     matchLabels:
-      app: query-processor
+      app: studio-project-service
   template:
     metadata:
       labels:
-        app: query-processor
+        app: studio-project-service
     spec:
       imagePullSecrets:
         - name: acr-secret
       containers:
-        - name: query-processor
-          image: twoshot.azurecr.io/query-processor:b39b50d33085459b78b1ddda284602f09d518197  # Use the latest version of the Docker image
+        - name: studio-project-service
+          image: twoshot.azurecr.io/studio-project-service:b39b50d33085459b78b1ddda284602f09d518197  # Use the latest version of the Docker image
           ports:
             - containerPort: 3000  # Expose port 3000 on the container
 
@@ -30,37 +30,15 @@ spec:
             failureThreshold: 3
 
           env:
-            # Email Config
-            - name: CONTACT_EMAIL
-              value: contact@twoshot.app
-            - name: SENDGRID_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: query-processor-secret
-                  key: SENDGRID_API_KEY
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "3000"  # Set the PORT environment variable to 3000
 
-            # GPT Config
-            - name: DEFAULT_REDIS_TTL
-              value: "60"
-            - name: AZURE_OAI_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: query-processor-secret
-                  key: AZURE_OAI_KEY
-            - name: TOKENIZER
-              value: gpt-4
-            - name: AZURE_OAI_ENDPOINT
-              value: https://twoshot.openai.azure.com
-            - name: AZURE_OAI_CHATGPT_DEPLOYMENT
-              #              value: twoshot-small
-              value: gpt-4o
-            - name: JSON_MODEL
-              #              value: twoshot-small
-              value: gpt-4o
-            - name: CHATGPT_MODEL_TOKENS
-              value: "128000"
-            #            - name: CHATGPT_FALLBACK_MODEL
-            #              value: twoshot
+            - name: AWS_REGION
+              value: arn:aws:sqs:us-east-1:858863279228:deduplicate-audio-studio-project.fifo
+            - name: DEDUPLICATE_AUDIO_SQS_QUEUE_URL
+              value: https://sqs.us-east-1.amazonaws.com/858863279228/deduplicate-audio-studio-project.fifo
 
             # DB connection details
             - name: DB_PORT
@@ -78,15 +56,6 @@ spec:
                 secretKeyRef:
                   name: app-secret
                   key: postgres-password
-            - name: REDIS_HOST
-              value: redis-master.default.svc.cluster.local
-            - name: REDIS_PORT
-              value: "6379"
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: redis
-                  key: redis-password
 
             - name: TWOSHOT_AUTH_PUBLIC_KEY
               valueFrom:
@@ -95,21 +64,16 @@ spec:
                   key: signing-key-public
             - name: TWOSHOT_API_BASE_PATH
               value: http://twoshot.default.svc.cluster.local:8080
-            - name: AIVA_FRONTEND_URL
-              value: https://aiva.bio
-            - name: PORT
-              value: "3000"  # Set the PORT environment variable to 3000
-            - name: AZURE_OAI_DEPLOYMENT
-              value: twoshot
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: query-processor
+  name: studio-project-service
 spec:
   type: NodePort  # Use a NodePort service type to expose the web service on the cluster's nodes
   selector:
-    app: query-processor
+    app: studio-project-service
   ports:
     - protocol: TCP
       port: 3000  # Expose port 3000 on the service

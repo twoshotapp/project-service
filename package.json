@@ -1,12 +1,13 @@
 {
   "scripts": {
     "build": "tsc -p . --outDir build",
-    "generate-schema": "openapi-generator-cli generate -i schema/openapi.yml -g nodejs-express-server -o gen",
+    "generate-schema": "openapi-typescript schema/openapi.yml -o gen/schema.ts",
     "start": "node build/client/server.js",
     "dev": "nodemon src/client/server.ts"
   },
   "type": "module",
   "dependencies": {
+    "@aws-sdk/client-sqs": "^3.632.0",
     "@sendgrid/mail": "^8.1.1",
     "async-mutex": "^0.4.0",
     "dotenv": "^16.0.3",
@@ -20,7 +21,8 @@
     "moment-timezone": "^0.5.44",
     "pg": "^8.11.3",
     "pg-interval": "^1.0.8",
-    "status-code-enum": "^1.0.0"
+    "status-code-enum": "^1.0.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.13.4",
@@ -30,7 +32,9 @@
     "@types/jsonwebtoken": "^9.0.5",
     "@types/jwt-decode": "^3.1.0",
     "@types/pg": "^8.10.9",
+    "@types/ws": "^8.5.12",
     "nodemon": "^2.0.20",
+    "openapi-typescript": "^7.3.0",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4"
   }

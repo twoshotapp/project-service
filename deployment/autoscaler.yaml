@@ -1,12 +1,12 @@
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: query-processor-autoscaler
+  name: studio-project-service-autoscaler
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: query-processor
+    name: studio-project-service
   minReplicas: 2  # define min replica count
   maxReplicas: 5 # define max replica count
   targetCPUUtilizationPercentage: 70 # target CPU utilization
